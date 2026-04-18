@@ -61,7 +61,41 @@ Or during development:
 npm run dev
 ```
 
-### MCP configuration example
+### OpenCode configuration example (`opencode.jsonc`)
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "ocr2md": {
+      "type": "local",
+      "command": [
+        "node",
+        "/absolute/path/to/ocr2md-mcp/dist/index.js"
+      ],
+      "enabled": true,
+      "timeout": 10000,
+      "environment": {
+        "TEXTIN_APP_ID": "your_app_id",
+        "TEXTIN_SECRET_CODE": "your_secret_code",
+        "TEXTIN_BASE_URL": "https://api.textin.com",
+        "OCR2MD_DEFAULT_CONCURRENCY": "3"
+      }
+    }
+  },
+  "permission": {
+    "ocr2md_": "ask"
+  }
+}
+```
+
+After saving the config, you can verify that OpenCode has loaded the MCP server:
+
+```bash
+opencode mcp list
+```
+
+### Generic MCP configuration example
 
 ```json
 {
@@ -183,7 +217,41 @@ npm start
 npm run dev
 ```
 
-### MCP 配置示例
+### OpenCode 配置示例（`opencode.jsonc`）
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "ocr2md": {
+      "type": "local",
+      "command": [
+        "node",
+        "/absolute/path/to/ocr2md-mcp/dist/index.js"
+      ],
+      "enabled": true,
+      "timeout": 10000,
+      "environment": {
+        "TEXTIN_APP_ID": "your_app_id",
+        "TEXTIN_SECRET_CODE": "your_secret_code",
+        "TEXTIN_BASE_URL": "https://api.textin.com",
+        "OCR2MD_DEFAULT_CONCURRENCY": "3"
+      }
+    }
+  },
+  "permission": {
+    "ocr2md_": "ask"
+  }
+}
+```
+
+保存配置后，可以用下面的命令确认 OpenCode 已加载该 MCP：
+
+```bash
+opencode mcp list
+```
+
+### 通用 MCP 配置示例
 
 ```json
 {
