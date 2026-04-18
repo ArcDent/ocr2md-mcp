@@ -1,0 +1,39 @@
+{
+  "name": "ocr2md-mcp",
+  "version": "0.1.0",
+  "description": "A lightweight MCP server that sends files to TextIn OCR and returns structured text and Markdown.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ocr2md-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "keywords": [
+    "mcp",
+    "ocr",
+    "textin",
+    "markdown"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0-alpha.2",
+    "dotenv": "^17.4.2",
+    "fast-glob": "^3.3.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4"
+  }
+}
