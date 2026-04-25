@@ -1,4 +1,4 @@
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 
@@ -27,9 +27,25 @@ export async function resolveInputFiles(input: ResolveFilesInput): Promise<strin
 
 export async function ensureReadableFile(filePath: string): Promise<void> {
   await access(filePath, constants.R_OK);
+  const fileStat = await stat(filePath);
+  if (!fileStat.isFile()) {
+    throw new Error(`Not a file: ${filePath}`);
+  }
 }
 
-export async function readLocalFile(filePath: string): Promise<Buffer> {
+export type ReadLocalFileOptions = {
+  maxFileBytes?: number;
+};
+
+export async function readLocalFile(filePath: string, options: ReadLocalFileOptions = {}): Promise<Buffer> {
   await ensureReadableFile(filePath);
+  if (options.maxFileBytes !== undefined) {
+    const fileStat = await stat(filePath);
+    if (fileStat.size > options.maxFileBytes) {
+      throw new Error(
+        `File exceeds maximum OCR upload size: ${fileStat.size} bytes > ${options.maxFileBytes} bytes`,
+      );
+    }
+  }
   return readFile(filePath);
 }

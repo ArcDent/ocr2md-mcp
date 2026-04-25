@@ -7,14 +7,17 @@ export type OcrBatchInput = {
   directory?: string;
   pattern?: string;
   concurrency?: number;
-  character?: string;
+  character?: boolean;
   straighten?: boolean;
+  displayPath?: 'absolute' | 'basename' | 'relative';
+  relativeTo?: string;
 };
 
 export type OcrBatchDependencies = {
   resolveInputFiles: typeof resolveInputFiles;
   ocrFileByPath: OcrFileByPathRunner;
   defaultConcurrency?: number;
+  maxConcurrency?: number;
 };
 
 function toErrorMessage(error: unknown): string {
@@ -46,10 +49,22 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
+function hasInputSource(input: OcrBatchInput): boolean {
+  return Boolean(input.directory?.trim()) || Boolean(input.filePaths?.some((filePath) => filePath.trim()));
+}
+
+function normalizeConcurrency(concurrency: number, maxConcurrency: number): number {
+  return Math.min(Math.max(1, concurrency), Math.max(1, maxConcurrency));
+}
+
 export async function runOcrBatch(
   input: OcrBatchInput,
   deps: OcrBatchDependencies,
 ): Promise<OcrBatchResult> {
+  if (!hasInputSource(input)) {
+    throw new Error('Provide filePaths or directory');
+  }
+
   const files = await deps.resolveInputFiles({
     ...(input.filePaths !== undefined ? { filePaths: input.filePaths } : {}),
     ...(input.directory !== undefined ? { directory: input.directory } : {}),
@@ -60,13 +75,18 @@ export async function runOcrBatch(
     throw new Error('No input files found');
   }
 
-  const concurrency = input.concurrency ?? deps.defaultConcurrency ?? 3;
+  const concurrency = normalizeConcurrency(
+    input.concurrency ?? deps.defaultConcurrency ?? 3,
+    deps.maxConcurrency ?? 10,
+  );
 
   const results = await mapWithConcurrency(files, concurrency, async (filePath) => {
     try {
       return await deps.ocrFileByPath(filePath, {
         ...(input.character !== undefined ? { character: input.character } : {}),
         ...(input.straighten !== undefined ? { straighten: input.straighten } : {}),
+        ...(input.displayPath !== undefined ? { displayPath: input.displayPath } : {}),
+        ...(input.relativeTo !== undefined ? { relativeTo: input.relativeTo } : {}),
       });
     } catch (error) {
       return {
