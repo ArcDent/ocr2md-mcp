@@ -1,58 +1,56 @@
 import type { TextInClient } from '../textin/client.js';
 import type { OcrSuccessResult } from '../textin/types.js';
-import { readLocalFile } from '../utils/files.js';
+import type { OcrFileOptions } from './ocrFile.js';
 
-export type OcrFileOptions = {
-  character?: boolean;
-  straighten?: boolean;
-  maxFileBytes?: number;
-  displayPath?: 'absolute' | 'basename' | 'relative';
-  relativeTo?: string;
-};
+export type OcrUrlOptions = Omit<OcrFileOptions, 'maxFileBytes'>;
 
-export type OcrFileByPathRunner = (
-  filePath: string,
-  options?: OcrFileOptions,
+export type OcrUrlRunner = (
+  url: string,
+  options?: OcrUrlOptions,
 ) => Promise<OcrSuccessResult>;
 
-export function createOcrFileRunner(client: TextInClient): OcrFileByPathRunner {
-  return async (filePath: string, options: OcrFileOptions = {}) => {
-    const fileBuffer = await readLocalFile(filePath, {
-      ...(options.maxFileBytes !== undefined ? { maxFileBytes: options.maxFileBytes } : {}),
-    });
-    const result = await client.ocrFile({
-      fileBuffer,
-      fileName: filePath,
+function validateHttpUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error('OCR URL must use http or https');
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error('OCR URL must use http or https');
+  }
+}
+
+export function createOcrUrlRunner(client: TextInClient): OcrUrlRunner {
+  return async (url: string, options: OcrUrlOptions = {}) => {
+    validateHttpUrl(url);
+    return client.ocrUrl({
+      url,
       ...(options.character !== undefined ? { character: options.character } : {}),
       ...(options.straighten !== undefined ? { straighten: options.straighten } : {}),
       ...(options.displayPath !== undefined ? { displayPath: options.displayPath } : {}),
       ...(options.relativeTo !== undefined ? { relativeTo: options.relativeTo } : {}),
     });
-
-    return {
-      ...result,
-      filePath,
-    };
   };
 }
 
-export async function runOcrFile(
+export async function runOcrUrl(
   input: {
-    filePath: string;
+    url: string;
     character?: boolean;
     straighten?: boolean;
-    maxFileBytes?: number;
     displayPath?: 'absolute' | 'basename' | 'relative';
     relativeTo?: string;
   },
   deps: {
-    ocrFileByPath: OcrFileByPathRunner;
+    ocrUrl: OcrUrlRunner;
   },
 ): Promise<OcrSuccessResult> {
-  return deps.ocrFileByPath(input.filePath, {
+  validateHttpUrl(input.url);
+  return deps.ocrUrl(input.url, {
     ...(input.character !== undefined ? { character: input.character } : {}),
     ...(input.straighten !== undefined ? { straighten: input.straighten } : {}),
-    ...(input.maxFileBytes !== undefined ? { maxFileBytes: input.maxFileBytes } : {}),
     ...(input.displayPath !== undefined ? { displayPath: input.displayPath } : {}),
     ...(input.relativeTo !== undefined ? { relativeTo: input.relativeTo } : {}),
   });

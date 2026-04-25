@@ -18,9 +18,37 @@ describe('buildMarkdownFromResults', () => {
       { headingLevel: 2 },
     );
 
-    expect(markdown).toContain('## images/a.jpg');
+    expect(markdown).toContain('## a.jpg');
     expect(markdown).toContain('Hello\nWorld');
-    expect(markdown).toContain('## images/b.jpg');
+    expect(markdown).toContain('## b.jpg');
     expect(markdown).toContain('_No text recognized._');
+  });
+
+  it('can render absolute Markdown heading paths', () => {
+    const markdown = buildMarkdownFromResults(
+      [
+        {
+          filePath: '/tmp/images/a.jpg',
+          text: 'Hello',
+        },
+      ],
+      { displayPath: 'absolute' },
+    );
+
+    expect(markdown).toContain('# /tmp/images/a.jpg');
+  });
+
+  it('can render paths relative to a configured directory', () => {
+    const markdown = buildMarkdownFromResults(
+      [
+        {
+          filePath: '/tmp/images/nested/a.jpg',
+          text: 'Hello',
+        },
+      ],
+      { displayPath: 'relative', relativeTo: '/tmp/images' },
+    );
+
+    expect(markdown).toContain('# nested/a.jpg');
   });
 });

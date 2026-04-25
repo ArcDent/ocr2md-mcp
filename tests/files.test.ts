@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { resolveInputFiles } from '../src/utils/files.js';
+import { readLocalFile, resolveInputFiles } from '../src/utils/files.js';
 
 describe('resolveInputFiles', () => {
   it('collects matching files from an explicit list and a directory glob', async () => {
@@ -27,5 +27,15 @@ describe('resolveInputFiles', () => {
     });
 
     expect(files).toEqual([first, second]);
+  });
+
+  it('rejects files larger than the configured maximum before reading', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ocr2md-files-'));
+    const filePath = join(dir, 'large.pdf');
+    await writeFile(filePath, 'abcdef');
+
+    await expect(readLocalFile(filePath, { maxFileBytes: 5 })).rejects.toThrow(
+      'File exceeds maximum OCR upload size: 6 bytes > 5 bytes',
+    );
   });
 });

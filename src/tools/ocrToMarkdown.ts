@@ -16,6 +16,8 @@ export async function runOcrToMarkdown(
     ...batchResult,
     markdown: buildMarkdownFromResults(successfulResults, {
       ...(input.headingLevel !== undefined ? { headingLevel: input.headingLevel } : {}),
+      ...(input.displayPath !== undefined ? { displayPath: input.displayPath } : {}),
+      ...(input.relativeTo !== undefined ? { relativeTo: input.relativeTo } : {}),
     }),
   };
 }
